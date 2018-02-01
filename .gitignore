@@ -1,0 +1,14 @@
+# Vagrant
+.vagrant/
+
+# OSX
+.DS_store
+
+# Idea
+build/
+.gradle/
+.idea
+*.iml
+
+# Redash
+src/test/resources/redash_dynamic.properties
