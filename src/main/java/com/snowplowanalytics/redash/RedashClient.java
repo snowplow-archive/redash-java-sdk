@@ -1,9 +1,9 @@
-package com.hfsolutions;
+package com.snowplowanalytics.redash;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.hfsolutions.model.datasource.DataSource;
-import com.hfsolutions.model.datasource.RedshiftDataSource;
+import com.snowplowanalytics.redash.model.datasource.DataSource;
+import com.snowplowanalytics.redash.model.datasource.RedshiftDataSource;
 import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;

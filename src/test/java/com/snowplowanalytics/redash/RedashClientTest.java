@@ -1,7 +1,7 @@
-package com.hfsolutions;
+package com.snowplowanalytics.redash;
 
-import com.hfsolutions.model.datasource.DataSource;
-import com.hfsolutions.model.datasource.RedshiftDataSource;
+import com.snowplowanalytics.redash.model.datasource.DataSource;
+import com.snowplowanalytics.redash.model.datasource.RedshiftDataSource;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

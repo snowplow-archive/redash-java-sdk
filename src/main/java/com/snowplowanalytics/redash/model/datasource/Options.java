@@ -1,4 +1,4 @@
-package com.hfsolutions.model.datasource;
+package com.snowplowanalytics.redash.model.datasource;
 
 import com.google.gson.annotations.SerializedName;
 

@@ -1,4 +1,4 @@
-group 'com.hfsolutions'
+group 'com.snowplowanalytics.redash'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'

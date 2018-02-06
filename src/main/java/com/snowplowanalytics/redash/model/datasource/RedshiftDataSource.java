@@ -1,4 +1,4 @@
-package com.hfsolutions.model.datasource;
+package com.snowplowanalytics.redash.model.datasource;
 
 public class RedshiftDataSource extends DataSource {
     private Options options;
