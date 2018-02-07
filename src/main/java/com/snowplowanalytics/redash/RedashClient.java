@@ -32,24 +32,65 @@ public class RedashClient {
         this.setHeaders();
     }
 
+    // #1
     public int createDataSource(RedshiftDataSource rds) throws IOException, IllegalArgumentException {
         if (isDataSourceAlreadyExists(rds.getName()))
             throw new IllegalArgumentException("Data-source with this name already exists");
-        String url = this.baseUrl + DATA_SOURCES + APIKEY_STRING + apiKey;
+        String url = baseUrl + DATA_SOURCES + APIKEY_STRING + apiKey;
         String returnValue = post(url, new Gson().toJson(rds));
-        return this.getIdFromJson(returnValue);
+        int id = getIdFromJson(returnValue);
+        rds.setId(id);
+        return id;
     }
 
+    //#2
+    public boolean upateDataSource(RedshiftDataSource whichToUpdate) throws IOException {
+        DataSource fromDataBase;
+        try {
+            fromDataBase = getDataSource(whichToUpdate.getName());
+        } catch (IllegalArgumentException e) {
+            throw new IOException(e.getMessage());
+        }
+        if (isDataSourceAlreadyUpToDate(fromDataBase, whichToUpdate)) return false;
+        String url = baseUrl + DATA_SOURCES + "/" + fromDataBase.getId() + APIKEY_STRING + apiKey;
+        post(url, new Gson().toJson(whichToUpdate));
+        return true;
+    }
+
+    //#3
     public List<DataSource> getDataSources() throws IOException {
-        String url = this.baseUrl + DATA_SOURCES + APIKEY_STRING + apiKey;
-        Type listType = new TypeToken<ArrayList<DataSource>>(){}.getType();
-        return new Gson().fromJson(get(url), listType);
+        String url = baseUrl + DATA_SOURCES + APIKEY_STRING + apiKey;
+        Type listType = new TypeToken<ArrayList<DataSource>>() {
+        }.getType();
+        String response = get(url);
+        return new Gson().fromJson(response, listType);
     }
 
-    public boolean deleteDataSource(int id) throws IOException {
-        String url = this.baseUrl + DATA_SOURCES + "/" + id + APIKEY_STRING + apiKey;
-        String response = delete(url);
-        return response.isEmpty();
+    //#4
+    public boolean deleteDataSource(int dataSourceId) throws IOException {
+        String url = baseUrl + DATA_SOURCES + "/" + dataSourceId + APIKEY_STRING + apiKey;
+        return delete(url).isEmpty();
+    }
+
+    //#14
+    public DataSource getDataSource(String name) throws IOException {
+        List<DataSource> dataSources = getDataSources();
+        Optional<DataSource> result = dataSources.stream().filter(e -> name.equals(e.getName())).findFirst();
+        if (!result.isPresent()) throw new IllegalArgumentException("Data-source with such name does not exist");
+        return getDataSourceById(result.get().getId());
+    }
+
+    private boolean isDataSourceAlreadyUpToDate(DataSource fromDataBase, DataSource whichToUpdate) {
+        return
+                fromDataBase.getHost().equals(whichToUpdate.getHost())
+                        && fromDataBase.getPort() == whichToUpdate.getPort()
+                        && fromDataBase.getUser().equals(whichToUpdate.getUser())
+                        && fromDataBase.getDbName().equals(whichToUpdate.getDbName());
+    }
+
+    public DataSource getDataSourceById(int id) throws IOException {
+        String url = baseUrl + DATA_SOURCES + "/" + id + APIKEY_STRING + apiKey;
+        return new Gson().fromJson(get(url), DataSource.class);
     }
 
     private void setHeaders() {

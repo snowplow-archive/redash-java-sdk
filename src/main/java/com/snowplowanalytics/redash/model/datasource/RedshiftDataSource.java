@@ -1,31 +1,9 @@
 package com.snowplowanalytics.redash.model.datasource;
 
 public class RedshiftDataSource extends DataSource {
-    private Options options;
 
     private RedshiftDataSource(RedshiftDataSourceBuilder builder) {
-        super(builder.name, "redshift");
-        this.options = new Options(builder.host, builder.port, builder.user, builder.password, builder.dbName);
-    }
-
-    public String getHost() {
-        return this.options.getHost();
-    }
-
-    public int getPort() {
-        return this.options.getPort();
-    }
-
-    public String getUser() {
-        return this.options.getUser();
-    }
-
-    public String getPassword() {
-        return this.options.getPassword();
-    }
-
-    public String getDbName() {
-        return this.options.getDbName();
+        super(builder.name, builder.host, builder.port, builder.user, builder.password, builder.dbName, "redshift");
     }
 
     public final static class RedshiftDataSourceBuilder {
