@@ -113,7 +113,7 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         int id = redashClient.createDataSource(rds);
         try {
             wrongClient.updateDataSource(rds);
-        } catch (IOException e) {
+        } catch (Exception e) {
         } finally {
             redashClient.deleteDataSource(id);
         }

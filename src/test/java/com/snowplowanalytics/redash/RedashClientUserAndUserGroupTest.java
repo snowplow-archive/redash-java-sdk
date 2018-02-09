@@ -44,7 +44,7 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
     @Test
     public void successfulCreateUserGroupTest() throws IOException {
         List<UserGroup> userGroups = redashClient.getUserGroups();
-        UserGroup created = new UserGroup("name");
+        UserGroup created = new UserGroup("testGroup");
         Assert.assertTrue(userGroups.size() == 2);
         int id = redashClient.createUserGroup(created);
         userGroups = redashClient.getUserGroups();
@@ -133,6 +133,59 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
         wrongClient.getUser(defaultUser.getName());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getUserByIdTest() throws IOException {
+        User fromDb = redashClient.getUserById(2);
+        Assert.assertTrue(defaultUser.equals(fromDb));
+        redashClient.getUserById(3);
+    }
+
+    @Test(expected = IOException.class)
+    public void unsuccessfulGetUserByIdTest() throws IOException {
+        wrongClient.getUserById(2);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getUserGroupByIdTest() throws IOException {
+        UserGroup fromDb = redashClient.getUserGroupBuId(1);
+        Assert.assertTrue(adminGroup.equals(fromDb));
+        redashClient.getUserGroupBuId(3);
+    }
+
+    @Test(expected = IOException.class)
+    public void unsuccessfulGetUserGroupByIdTest() throws IOException {
+        wrongClient.getUserGroupBuId(1);
+    }
+
+    @Test
+    public void addUserToUserGroupTest() throws IOException {
+        UserGroup createdUserGroup = new UserGroup("createdForTest");
+        int createdUserGroupId = redashClient.createUserGroup(createdUserGroup);
+        User fromDb = redashClient.getUser(defaultUser.getName());
+        Assert.assertFalse(fromDb.getGroups().contains(createdUserGroupId));
+        Assert.assertTrue(redashClient.addUserToGroup(fromDb.getId(), createdUserGroupId));
+        fromDb = redashClient.getUser(defaultUser.getName());
+        Assert.assertTrue(fromDb.getGroups().size() == 1);
+        Assert.assertTrue(fromDb.getGroups().contains(createdUserGroupId));
+        Assert.assertFalse(redashClient.addUserToGroup(fromDb.getId(), createdUserGroupId));
+        Assert.assertTrue(fromDb.getGroups().size() == 1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addNonExistingUserToUserGroup() throws IOException {
+        redashClient.addUserToGroup(4, defaultGroup.getId());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addUserToNonExistingUserGroup() throws IOException {
+        redashClient.addUserToGroup(defaultUser.getId(), 3);
+    }
+
+    @Test(expected = IOException.class)
+    public void addUserToUserGroupTestWithWrongKey() throws IOException {
+        wrongClient.addUserToGroup(defaultUser.getId(), defaultGroup.getId());
+    }
+
     private void wipeAllCreatedUserGroups() throws IOException {
         redashClient.getUserGroups().forEach(userGroup -> {
             int id = userGroup.getId();
@@ -145,6 +198,5 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
             }
         });
     }
-
 
 }
