@@ -28,22 +28,26 @@ public class RedashClient {
     public static final String USER_DOES_NOT_EXIST = "User with such name does not exist.";
     public static final String DATA_SOURCE_DOES_NOT_EXIST = "Data-source with such name does not exist.";
 
-    private OkHttpClient client;
-    private String baseUrl;
-    private String apiKey;
-    private Headers headers;
+    private final OkHttpClient client;
+    private final String baseUrl;
+    private final String apiKey;
+    private final Headers headers;
 
     public RedashClient(String schema, String host, int port, String apiKey) {
         this.client = new OkHttpClient();
         this.apiKey = apiKey;
-        this.setBaseUrl(host, port, schema);
-        this.setHeaders();
+        this.baseUrl = schema + "://" + host + ":" + port + API_STRING;
+        this.headers = new Headers.Builder()
+                .add("Accept", "application/json, text/plain, */*")
+                .add("Content-Type", "application/json;charset=UTF-8")
+                .build();
     }
 
     //#1
     public int createDataSource(DataSource rds) throws IOException, IllegalArgumentException {
-        if (isEntityAlreadyExists(getDataSources(), rds.getName()))
+        if (isEntityAlreadyExists(getDataSources(), rds.getName())) {
             throw new IllegalArgumentException(DATA_SOURCE_ALREADY_EXISTS);
+        }
         String url = baseUrl + DATA_SOURCES + APIKEY_STRING + apiKey;
         String returnValue = post(url, new Gson().toJson(rds));
         int id = getIdFromJson(returnValue);
@@ -59,7 +63,9 @@ public class RedashClient {
         } catch (IllegalArgumentException e) {
             throw new IOException(e.getMessage());
         }
-        if (isDataSourceAlreadyUpToDate(fromDataBase, whichToUpdate)) return false;
+        if (isDataSourceAlreadyUpToDate(fromDataBase, whichToUpdate)) {
+            return false;
+        }
         String url = baseUrl + DATA_SOURCES + "/" + fromDataBase.getId() + APIKEY_STRING + apiKey;
         post(url, new Gson().toJson(whichToUpdate));
         return true;
@@ -103,7 +109,9 @@ public class RedashClient {
     public boolean deleteUserGroup(int userGroupId) throws IOException {
         String url = baseUrl + GROUPS + "/" + userGroupId + APIKEY_STRING + apiKey;
         String response = delete(url);
-        if(checkForReasonToThrowIOException(response))throw new IOException(response);
+        if (checkForReasonToThrowIOException(response)) {
+            throw new IOException(response);
+        }
         return "null".equals(response);
     }
 
@@ -118,39 +126,31 @@ public class RedashClient {
     //#13
     public User getUser(String userName) throws IOException {
         Optional<User> result = getUsers().stream().filter(e -> userName.equals(e.getName())).findFirst();
-        if (!result.isPresent()) throw new IllegalArgumentException(USER_DOES_NOT_EXIST);
+        if (!result.isPresent()) {
+            throw new IllegalArgumentException(USER_DOES_NOT_EXIST);
+        }
         return result.get();
     }
 
     //#14
     public DataSource getDataSource(String dataSourceName) throws IOException {
         Optional<DataSource> result = getDataSources().stream().filter(e -> dataSourceName.equals(e.getName())).findFirst();
-        if (!result.isPresent()) throw new IllegalArgumentException(DATA_SOURCE_DOES_NOT_EXIST);
+        if (!result.isPresent()) {
+            throw new IllegalArgumentException(DATA_SOURCE_DOES_NOT_EXIST);
+        }
         return getDataSourceById(result.get().getId());
     }
 
     private boolean isDataSourceAlreadyUpToDate(DataSource fromDataBase, DataSource whichToUpdate) {
-        return
-                fromDataBase.getHost().equals(whichToUpdate.getHost())
-                        && fromDataBase.getPort() == whichToUpdate.getPort()
-                        && fromDataBase.getUser().equals(whichToUpdate.getUser())
-                        && fromDataBase.getDbName().equals(whichToUpdate.getDbName());
+        return fromDataBase.getHost().equals(whichToUpdate.getHost())
+                && fromDataBase.getPort() == whichToUpdate.getPort()
+                && fromDataBase.getUser().equals(whichToUpdate.getUser())
+                && fromDataBase.getDbName().equals(whichToUpdate.getDbName());
     }
 
     public DataSource getDataSourceById(int id) throws IOException {
         String url = baseUrl + DATA_SOURCES + "/" + id + APIKEY_STRING + apiKey;
         return new Gson().fromJson(get(url), DataSource.class);
-    }
-
-    private void setHeaders() {
-        this.headers = new Headers.Builder()
-                .add("Accept", "application/json, text/plain, */*")
-                .add("Content-Type", "application/json;charset=UTF-8")
-                .build();
-    }
-
-    private void setBaseUrl(String host, int port, String schema) {
-        this.baseUrl = schema + "://" + host + ":" + port + API_STRING;
     }
 
     private boolean isEntityAlreadyExists(List<? extends BaseEntity> list, String name) throws IOException {
@@ -189,12 +189,14 @@ public class RedashClient {
 
     private String performCall(Request request) throws IOException {
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful() && request.method().equals("GET")) throw new IOException(response.message());
+            if (!response.isSuccessful() && request.method().equals("GET")) {
+                throw new IOException(response.message());
+            }
             return response.body().string();
         }
     }
 
-    private boolean checkForReasonToThrowIOException(String response){
+    private boolean checkForReasonToThrowIOException(String response) {
         return !"{\"message\": \"Internal Server Error\"}".equals(response) && !"null".equals(response);
     }
 }
