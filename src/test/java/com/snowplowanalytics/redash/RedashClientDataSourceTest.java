@@ -5,8 +5,6 @@ import com.snowplowanalytics.redash.model.datasource.RedshiftDataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.List;
@@ -14,14 +12,12 @@ import java.util.List;
 import static com.snowplowanalytics.redash.RedashClient.*;
 import static org.hamcrest.core.Is.is;
 
-/*
+/**
     All tests should be performed on clear database without any data sources.
     For that purpose there's implemented wipeDataSources() method.
     IT WILL DROP DATA SOURCES FROM REDASH SERVER
     You may uncomment it if you had some troubles in tests and there's a trash data which you want to delete.
-* */
-@RunWith(MockitoJUnitRunner.class)
-
+*/
 public class RedashClientDataSourceTest extends AbstractRedashClientTest {
 
     @Before
@@ -154,6 +150,72 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         redashClient.deleteDataSource(id);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getDataSourceByIdWhichNoExistsTest() throws IOException {
+        redashClient.getDataSourceById(1);
+    }
+
+    @Test
+    public void addDataSourceToGroupTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        Assert.assertTrue(redashClient.getDataSourceById(id).getGroups().size() == 1);
+        Assert.assertTrue(redashClient.addDataSourceToGroup(id, adminGroup.getId()));
+        DataSource fromDb = redashClient.getDataSourceById(id);
+        Assert.assertTrue(fromDb.getGroups().size() == 2);
+        Assert.assertTrue(fromDb.getGroups().containsKey(adminGroup.getId()));
+        Assert.assertTrue(fromDb.getGroups().containsKey(defaultGroup.getId()));
+        Assert.assertFalse(redashClient.addDataSourceToGroup(id, adminGroup.getId()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addNonExistingDataSourceToGroupTest() throws IOException {
+        redashClient.addDataSourceToGroup(1, adminGroup.getId());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addDataSourceToNonExistingGroupTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        redashClient.addDataSourceToGroup(id, defaultGroup.getId() + 1);
+    }
+
+    @Test(expected = IOException.class)
+    public void addDataSourceToGroupWithWrongClientTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        wrongClient.addDataSourceToGroup(id, defaultGroup.getId());
+    }
+
+    @Test
+    public void removeDataSourceFromGroupTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        DataSource fromDb = redashClient.getDataSourceById(id);
+        Assert.assertTrue(fromDb.getGroups().size() == 1);
+        Assert.assertTrue(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId()));
+        Assert.assertTrue(redashClient.getDataSourceById(id).getGroups().isEmpty());
+        Assert.assertFalse(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void removeNonExistingDataSourceFromGroupTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        DataSource fromDb = redashClient.getDataSourceById(id);
+        Assert.assertTrue(fromDb.getGroups().size() == 1);
+        Assert.assertTrue(redashClient.removeDataSourceFromGroup(id + 1, defaultGroup.getId()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void removeDataSourceFromNonExistingGroupTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        DataSource fromDb = redashClient.getDataSourceById(id);
+        Assert.assertTrue(fromDb.getGroups().size() == 1);
+        Assert.assertTrue(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId() + 1));
+    }
+
+    @Test(expected = IOException.class)
+    public void removeDataSourceFromGroupWithWrongClientTest() throws IOException {
+        int id = redashClient.createDataSource(rds);
+        wrongClient.removeDataSourceFromGroup(id, defaultGroup.getId());
+    }
+
     private boolean dataSourceMatcher(DataSource first, DataSource second) {
         if (first.getName() == null || first.getType() == null) return false;
         return first.getName().equals(second.getName()) &&
@@ -173,7 +235,8 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         redashClient.getDataSources().forEach(dataSource -> {
             try {
                 redashClient.deleteDataSource(dataSource.getId());
-            } catch (IOException e){}
+            } catch (IOException e) {
+            }
         });
     }
 }

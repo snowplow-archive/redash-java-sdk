@@ -3,9 +3,21 @@ package com.snowplowanalytics.redash.model.datasource;
 
 import com.snowplowanalytics.redash.model.BaseEntity;
 
+import java.util.Map;
+
 public class DataSource extends BaseEntity{
     private String type;
     private Options options;
+
+    public Map<Integer, Boolean> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Map<Integer, Boolean> groups) {
+        this.groups = groups;
+    }
+
+    private Map<Integer, Boolean> groups;
 
     public DataSource(String name, String host, int port, String user, String password, String dbName, String type) {
         super(name);
