@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2018 Snowplow Analytics Ltd. All rights reserved.
+ *
+ * This program is licensed to you under the Apache License Version 2.0,
+ * and you may not use this file except in compliance with the Apache License Version 2.0.
+ * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the Apache License Version 2.0 is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ */
+
 package com.snowplowanalytics.redash;
 
 import com.google.gson.Gson;
@@ -305,9 +318,7 @@ public class RedashClient {
     }
 
     /**
-     * Provides opportunity to retrieve the user-group from redash server by it's id.
-     * Implemented as util method and also takes a part in several test methods in the RedashClientUserAndUserGroupTest class.
-     * Only for this reason it has a public access. So after tests are passed access modifier could be changed to a private.
+     * Provides opportunity to retrieve the user-group from redash server by it's id. Implemented as util method.
      *
      * @return UserGroup instance.
      * @throws IllegalArgumentException if there is no user-group with such id.
@@ -320,9 +331,7 @@ public class RedashClient {
     }
 
     /**
-     * Provides opportunity to retrieve the user from redash server by it's id.
-     * Implemented as util method and also takes a part in several test methods in the RedashClientUserAndUserGroupTest class.
-     * Only for this reason it has a public access. So after tests are passed access modifier could be changed to a private.
+     * Provides opportunity to retrieve the user-group from redash server by it's id. Implemented as util method.
      *
      * @return User instance.
      * @throws IllegalArgumentException if there is no user with such id.
@@ -335,11 +344,9 @@ public class RedashClient {
     }
 
     /**
-     * Provides opportunity to retrieve the data-source from redash server by it's id.
-     * Implemented as util method and also takes a part in several test methods in the RedashClientDataSourceTest class.
-     * Only for this reason it has a public access. So after tests are passed access modifier could be changed to a private.
+     * Provides opportunity to retrieve the user-group from redash server by it's id. Implemented as util method.
      *
-     * @return UserGroup instance
+     * @return DataSource instance
      * @throws IllegalArgumentException if there is no user-group with such id
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */

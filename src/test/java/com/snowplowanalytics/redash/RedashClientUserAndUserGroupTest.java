@@ -1,18 +1,28 @@
+/*
+ * Copyright (c) 2018 Snowplow Analytics Ltd. All rights reserved.
+ *
+ * This program is licensed to you under the Apache License Version 2.0,
+ * and you may not use this file except in compliance with the Apache License Version 2.0.
+ * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the Apache License Version 2.0 is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ */
+
 package com.snowplowanalytics.redash;
 
 import com.snowplowanalytics.redash.model.User;
 import com.snowplowanalytics.redash.model.UserGroup;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Properties;
 
-/** Tests should be performed with only thouse user groups that are created by Redash server
+/** Tests should be performed with only those user groups that are created by Redash server
     just after installation and registration process completed.
     For that purpose there's implemented wipeDataSources() method,
     IT WILL DROP USER GROUPS FROM REDASH SERVER EXCEPT ADMIN AND DEFAULT
@@ -89,8 +99,8 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
     public void getUsersTest() throws IOException {
         List<User> users = redashClient.getUsers();
         Assert.assertTrue(users.size() == 2);
-        Assert.assertTrue(users.get(0).equals(defaultUser));
-        Assert.assertTrue(users.get(1).equals(adminUser));
+        Assert.assertTrue(users.get(0).equals(adminUser));
+        Assert.assertTrue(users.get(1).equals(defaultUser));
     }
 
     @Test(expected = IOException.class)
@@ -112,30 +122,6 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
     @Test(expected = IOException.class)
     public void getUserWithIOExceptionTest() throws IOException {
         wrongClient.getUser(defaultUser.getName());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getUserByIdTest() throws IOException {
-        User fromDb = redashClient.getUserById(2);
-        Assert.assertTrue(defaultUser.equals(fromDb));
-        redashClient.getUserById(3);
-    }
-
-    @Test(expected = IOException.class)
-    public void unsuccessfulGetUserByIdTest() throws IOException {
-        wrongClient.getUserById(2);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getUserGroupByIdTest() throws IOException {
-        UserGroup fromDb = redashClient.getUserGroupById(1);
-        Assert.assertTrue(adminGroup.equals(fromDb));
-        redashClient.getUserGroupById(3);
-    }
-
-    @Test(expected = IOException.class)
-    public void unsuccessfulGetUserGroupByIdTest() throws IOException {
-        wrongClient.getUserGroupById(1);
     }
 
     @Test
@@ -169,14 +155,14 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void removeUserFromGroupTest() throws IOException {
-        User fromDb = redashClient.getUserById(defaultUser.getId());
+        User fromDb = redashClient.getUser(defaultUser.getName());
         Assert.assertTrue(fromDb.getGroups().isEmpty());
         Assert.assertTrue(redashClient.addUserToGroup(defaultUser.getId(), defaultGroup.getId()));
-        fromDb = redashClient.getUserById(defaultUser.getId());
+        fromDb = redashClient.getUser(defaultUser.getName());
         Assert.assertTrue(fromDb.getGroups().size() == 1);
         Assert.assertTrue(fromDb.getGroups().contains(defaultGroup.getId()));
         Assert.assertTrue(redashClient.removeUserFromGroup(defaultUser.getId(), defaultGroup.getId()));
-        fromDb = redashClient.getUserById(defaultUser.getId());
+        fromDb = redashClient.getUser(defaultUser.getName());
         Assert.assertTrue(fromDb.getGroups().isEmpty());
     }
 

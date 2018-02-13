@@ -1,0 +1,5 @@
+language: java
+# safelist
+branches:
+  only:
+  - all_complete_with_testing_scenarios
