@@ -3,3 +3,10 @@ language: java
 branches:
   only:
   - all_complete_with_testing_scenarios
+  
+  notifications:
+  email:
+    recipients:
+      - sergei.ivanov@hf-solution.com
+    on_success: never
+    on_failure: always
