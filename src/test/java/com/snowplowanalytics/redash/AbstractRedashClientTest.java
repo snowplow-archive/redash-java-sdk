@@ -61,5 +61,4 @@ public class AbstractRedashClientTest {
         adminGroup = new UserGroup(prop.getProperty("admin_group"), 1);
         defaultGroup = new UserGroup(prop.getProperty("default_group"), 2);
     }
-
 }

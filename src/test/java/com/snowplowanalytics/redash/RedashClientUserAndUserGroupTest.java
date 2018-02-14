@@ -193,5 +193,4 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
             }
         });
     }
-
 }

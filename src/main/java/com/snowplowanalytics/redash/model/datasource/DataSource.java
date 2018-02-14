@@ -35,8 +35,8 @@ public class DataSource extends BaseEntity{
         super(name);
         this.type = type;
         this.options = new Options(host, port, user, password, type);
-
     }
+
     public String getHost() {
         return this.options.getHost();
     }
@@ -60,5 +60,4 @@ public class DataSource extends BaseEntity{
     public String getType() {
         return type;
     }
-
 }

@@ -37,7 +37,9 @@ public class User extends BaseEntity {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
+        if (o == this) {
+            return true;
+        }
         if (!(o instanceof User)) {
             return false;
         }
@@ -45,5 +47,4 @@ public class User extends BaseEntity {
         return getId() == user.getId() &&
                 Objects.equals(getName(), user.getName());
     }
-
 }

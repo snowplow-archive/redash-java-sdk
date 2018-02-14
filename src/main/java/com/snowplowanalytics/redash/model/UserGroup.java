@@ -15,7 +15,7 @@ package com.snowplowanalytics.redash.model;
 
 import java.util.Objects;
 
-public class UserGroup extends BaseEntity{
+public class UserGroup extends BaseEntity {
 
     public UserGroup(String name) {
         super(name);
@@ -27,7 +27,9 @@ public class UserGroup extends BaseEntity{
 
     @Override
     public boolean equals(Object o) {
-        if (o == this) return true;
+        if (o == this) {
+            return true;
+        }
         if (!(o instanceof UserGroup)) {
             return false;
         }
@@ -35,5 +37,4 @@ public class UserGroup extends BaseEntity{
         return getId() == o1.getId() &&
                 Objects.equals(getName(), o1.getName());
     }
-
 }

@@ -60,5 +60,4 @@ public class RedshiftDataSource extends DataSource {
             return new RedshiftDataSource(this);
         }
     }
-
 }

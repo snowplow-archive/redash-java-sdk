@@ -40,7 +40,6 @@ public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
     */
     @Test
     public void firstScenarioTest() throws IOException {
-        wipeDataSources();
         UserGroup userGroup = new UserGroup("test group");
         int userGroupId = redashClient.createUserGroup(userGroup);
         int dataSourceId = redashClient.createDataSource(rds);

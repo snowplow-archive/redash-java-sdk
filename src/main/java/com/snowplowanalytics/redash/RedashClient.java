@@ -74,7 +74,6 @@ public class RedashClient {
      *                                  with such name
      *                                  Uses Gson library to serialize DataSource instance into String value.
      */
-    //#1
     public int createDataSource(DataSource dataSource) throws IOException, IllegalArgumentException {
         if (isEntityAlreadyExists(getDataSources(), dataSource.getName())) {
             throw new IllegalArgumentException(DATA_SOURCE_ALREADY_EXISTS);
@@ -97,7 +96,6 @@ public class RedashClient {
      * @throws IOException with the message that the server response in the case if data-source with provided name
      *                     couldn't be found, or wrong API key, or there is any connection error.
      */
-    //#2
     public boolean updateDataSource(DataSource dataSource) throws IOException {
         DataSource fromDataBase;
         try {
@@ -118,11 +116,9 @@ public class RedashClient {
      * will be empty.
      * @throws IOException if server is not available due to connection error or API key is invalid.
      */
-    //#3
     public List<DataSource> getDataSources() throws IOException {
         String url = baseUrl + DATA_SOURCES + APIKEY_STRING + apiKey;
-        Type listType = new TypeToken<ArrayList<DataSource>>() {
-        }.getType();
+        Type listType = new TypeToken<ArrayList<DataSource>>() {}.getType();
         return new Gson().fromJson(get(url), listType);
     }
 
@@ -134,7 +130,6 @@ public class RedashClient {
      * deleted and true will be returned.
      * @throws IOException if server is not available due to connection error or API key is invalid.
      */
-    //#4
     public boolean deleteDataSource(int dataSourceId) throws IOException {
         String url = baseUrl + DATA_SOURCES + "/" + dataSourceId + APIKEY_STRING + apiKey;
         return delete(url).isEmpty();
@@ -149,7 +144,6 @@ public class RedashClient {
      * @throws IllegalArgumentException if there is already exists user-group with the name provided inside dataSource
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#5
     public int createUserGroup(UserGroup userGroup) throws IOException {
         if (isEntityAlreadyExists(getUserGroups(), userGroup.getName())) {
             throw new IllegalArgumentException(USER_GROUP_ALREADY_EXISTS);
@@ -169,7 +163,6 @@ public class RedashClient {
      *                                  onto Redash server.
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#6
     public boolean addUserToGroup(int userId, int groupId) throws IOException {
         User user = getUserById(userId);
         checkIfUserGroupExists(groupId);
@@ -189,7 +182,6 @@ public class RedashClient {
      * @throws IllegalArgumentException if data-source or user-group does not exist
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#7
     public boolean addDataSourceToGroup(int dataSourceId, int groupId) throws IOException {
         DataSource dataSource = getDataSourceById(dataSourceId);
         checkIfUserGroupExists(groupId);
@@ -209,7 +201,6 @@ public class RedashClient {
      * @throws IllegalArgumentException if either user or user-group does not exist.
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#8
     public boolean removeUserFromGroup(int userId, int groupId) throws IOException {
         User user = getUserById(userId);
         checkIfUserGroupExists(groupId);
@@ -228,7 +219,6 @@ public class RedashClient {
      * @throws IllegalArgumentException if either data-source or user-group does not exist.
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#9
     public boolean removeDataSourceFromGroup(int dataSourceId, int groupId) throws IOException {
         DataSource dataSource = getDataSourceById(dataSourceId);
         checkIfUserGroupExists(groupId);
@@ -246,11 +236,9 @@ public class RedashClient {
      * @return List<UserGroup> as result which will contain at least two user groups with names "admin" and "default".
      * @throws IOException if server is not available due to connection error or API key is invalid.
      */
-    //#10
     public List<UserGroup> getUserGroups() throws IOException {
         String url = baseUrl + GROUPS + APIKEY_STRING + apiKey;
-        Type listType = new TypeToken<ArrayList<UserGroup>>() {
-        }.getType();
+        Type listType = new TypeToken<ArrayList<UserGroup>>() {}.getType();
         return new Gson().fromJson(get(url), listType);
     }
 
@@ -261,7 +249,6 @@ public class RedashClient {
      * wasn't found and so couldn't be deleted.
      * @throws IOException if server is not available due to connection error or API key is invalid.
      */
-    //#11
     public boolean deleteUserGroup(int userGroupId) throws IOException {
         String url = baseUrl + GROUPS + "/" + userGroupId + APIKEY_STRING + apiKey;
         String response = delete(url);
@@ -277,11 +264,9 @@ public class RedashClient {
      *
      * @throws IOException if server is not available due to connection error or API key is invalid.
      */
-    //#12
     public List<User> getUsers() throws IOException {
         String url = baseUrl + USERS + APIKEY_STRING + apiKey;
-        Type listType = new TypeToken<ArrayList<User>>() {
-        }.getType();
+        Type listType = new TypeToken<ArrayList<User>>() {}.getType();
         return new Gson().fromJson(get(url), listType);
     }
 
@@ -292,7 +277,6 @@ public class RedashClient {
      * @throws IllegalArgumentException if user with provided name wasn't found between existing on the Redash server.
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#13
     public User getUser(String userName) throws IOException {
         Optional<User> result = getUsers().stream().filter(e -> userName.equals(e.getName())).findFirst();
         if (!result.isPresent()) {
@@ -308,7 +292,6 @@ public class RedashClient {
      * @throws IllegalArgumentException if data-source with provided name wasn't found between existing on the Redash server.
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
-    //#14
     public DataSource getDataSource(String dataSourceName) throws IOException {
         Optional<DataSource> result = getDataSources().stream().filter(e -> dataSourceName.equals(e.getName())).findFirst();
         if (!result.isPresent()) {

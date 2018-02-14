@@ -50,5 +50,4 @@ public class Options {
     public String getDbName() {
         return dbName;
     }
-
 }
