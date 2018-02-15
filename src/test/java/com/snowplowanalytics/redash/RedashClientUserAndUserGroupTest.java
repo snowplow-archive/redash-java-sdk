@@ -15,6 +15,7 @@ package com.snowplowanalytics.redash;
 
 import com.snowplowanalytics.redash.model.User;
 import com.snowplowanalytics.redash.model.UserGroup;
+import com.snowplowanalytics.redash.model.datasource.DataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,8 +100,8 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
     public void getUsersTest() throws IOException {
         List<User> users = redashClient.getUsers();
         Assert.assertTrue(users.size() == 2);
-        Assert.assertTrue(users.get(0).equals(adminUser));
-        Assert.assertTrue(users.get(1).equals(defaultUser));
+        Assert.assertTrue(users.get(1).equals(adminUser));
+        Assert.assertTrue(users.get(0).equals(defaultUser));
     }
 
     @Test(expected = IOException.class)
@@ -128,14 +129,16 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
     public void addUserToUserGroupTest() throws IOException {
         UserGroup createdUserGroup = new UserGroup("createdForTest");
         int createdUserGroupId = redashClient.createUserGroup(createdUserGroup);
-        User fromDb = redashClient.getUser(defaultUser.getName());
-        Assert.assertFalse(fromDb.getGroups().contains(createdUserGroupId));
-        Assert.assertTrue(redashClient.addUserToGroup(fromDb.getId(), createdUserGroupId));
-        fromDb = redashClient.getUser(defaultUser.getName());
-        Assert.assertTrue(fromDb.getGroups().size() == 1);
-        Assert.assertTrue(fromDb.getGroups().contains(createdUserGroupId));
-        Assert.assertFalse(redashClient.addUserToGroup(fromDb.getId(), createdUserGroupId));
-        Assert.assertTrue(fromDb.getGroups().size() == 1);
+        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(createdUserGroupId);
+        User userFromDb = redashClient.getUser(defaultUser.getName());
+        Assert.assertFalse(groupFromDb.getUsers().contains(userFromDb));
+        Assert.assertTrue(redashClient.addUserToGroup(userFromDb.getId(), createdUserGroupId));
+        groupFromDb = redashClient.getWithUsersAndDataSources(createdUserGroupId);
+        Assert.assertTrue(groupFromDb.getUsers().size() == 1);
+        Assert.assertTrue(groupFromDb.getUsers().contains(userFromDb));
+        Assert.assertFalse(redashClient.addUserToGroup(userFromDb.getId(), createdUserGroupId));
+        groupFromDb = redashClient.getWithUsersAndDataSources(createdUserGroupId);
+        Assert.assertTrue(groupFromDb.getUsers().size() == 1);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -155,15 +158,13 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void removeUserFromGroupTest() throws IOException {
-        User fromDb = redashClient.getUser(defaultUser.getName());
-        Assert.assertTrue(fromDb.getGroups().isEmpty());
-        Assert.assertTrue(redashClient.addUserToGroup(defaultUser.getId(), defaultGroup.getId()));
-        fromDb = redashClient.getUser(defaultUser.getName());
-        Assert.assertTrue(fromDb.getGroups().size() == 1);
-        Assert.assertTrue(fromDb.getGroups().contains(defaultGroup.getId()));
+        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
+        Assert.assertTrue(groupFromDb.getUsers().size()==2);
         Assert.assertTrue(redashClient.removeUserFromGroup(defaultUser.getId(), defaultGroup.getId()));
-        fromDb = redashClient.getUser(defaultUser.getName());
-        Assert.assertTrue(fromDb.getGroups().isEmpty());
+        groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
+        Assert.assertTrue(groupFromDb.getUsers().size()==1);
+        Assert.assertTrue(!groupFromDb.getUsers().contains(defaultUser));
+        redashClient.addUserToGroup(defaultUser.getId(), defaultGroup.getId());
     }
 
     @Test(expected = IllegalArgumentException.class)

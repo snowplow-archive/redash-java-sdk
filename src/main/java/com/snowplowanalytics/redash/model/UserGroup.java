@@ -13,9 +13,15 @@
 
 package com.snowplowanalytics.redash.model;
 
+import com.snowplowanalytics.redash.model.datasource.DataSource;
+
+import java.util.List;
 import java.util.Objects;
 
 public class UserGroup extends BaseEntity {
+
+    private List<User> users;
+    private List<DataSource> dataSources;
 
     public UserGroup(String name) {
         super(name);
@@ -23,6 +29,22 @@ public class UserGroup extends BaseEntity {
 
     public UserGroup(String name, int id) {
         super(name, id);
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(List<User> users) {
+        this.users = users;
+    }
+
+    public List<DataSource> getDataSources() {
+        return dataSources;
+    }
+
+    public void setDataSources(List<DataSource> dataSources) {
+        this.dataSources = dataSources;
     }
 
     @Override

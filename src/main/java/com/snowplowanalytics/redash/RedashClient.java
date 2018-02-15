@@ -85,7 +85,7 @@ public class RedashClient {
             throw new IllegalArgumentException(DATA_SOURCE_ALREADY_EXISTS);
         }
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        String response = post(url, new Gson().toJson(dataSource));
+        String response = post(url, new Gson().toJson(dataSource), CheckResponseStatus.NO);
         int id = getIdFromJson(response);
         dataSource.setId(id);
         return id;
@@ -113,7 +113,7 @@ public class RedashClient {
             return false;
         }
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + "/" + fromDataBase.getId() + API_KEY_URL_PARAM + apiKey;
-        post(url, new Gson().toJson(dataSource));
+        post(url, new Gson().toJson(dataSource), CheckResponseStatus.NO);
         return true;
     }
 
@@ -124,8 +124,9 @@ public class RedashClient {
      */
     public List<DataSource> getDataSources() throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        Type listType = new TypeToken<ArrayList<DataSource>>() {}.getType();
-        return new Gson().fromJson(get(url), listType);
+        Type listType = new TypeToken<ArrayList<DataSource>>() {
+        }.getType();
+        return new Gson().fromJson(get(url, CheckResponseStatus.YES), listType);
     }
 
     /**
@@ -138,7 +139,7 @@ public class RedashClient {
      */
     public boolean deleteDataSource(int dataSourceId) throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + "/" + dataSourceId + API_KEY_URL_PARAM + apiKey;
-        return delete(url).isEmpty();
+        return delete(url, CheckResponseStatus.NO).isEmpty();
     }
 
     /**
@@ -155,7 +156,7 @@ public class RedashClient {
             throw new IllegalArgumentException(USER_GROUP_ALREADY_EXISTS);
         }
         String url = baseUrl + GROUPS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        String returnValue = post(url, new Gson().toJson(userGroup));
+        String returnValue = post(url, new Gson().toJson(userGroup), CheckResponseStatus.NO);
         int id = getIdFromJson(returnValue);
         userGroup.setId(id);
         return id;
@@ -170,13 +171,13 @@ public class RedashClient {
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
     public boolean addUserToGroup(int userId, int groupId) throws IOException {
-        User user = getUserById(userId);
-        checkIfUserGroupExists(groupId);
-        if (user.getGroups().contains(groupId)) {
+        checkIfEntityExists(User.class, userId);
+        UserGroup userGroup = getWithUsersAndDataSources(groupId);
+        if (userGroup.getUsers().stream().anyMatch(u -> u.getId() == userId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + MEMBERS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        post(url, new JSONObject().put(USER_ID, userId).toString());
+        post(url, new JSONObject().put(USER_ID, userId).toString(), CheckResponseStatus.NO);
         return true;
     }
 
@@ -188,13 +189,13 @@ public class RedashClient {
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
     public boolean addDataSourceToGroup(int dataSourceId, int groupId) throws IOException {
-        DataSource dataSource = getDataSourceById(dataSourceId);
-        checkIfUserGroupExists(groupId);
-        if (dataSource.getGroups().keySet().contains(groupId)) {
+        checkIfEntityExists(DataSource.class, dataSourceId);
+        UserGroup userGroup = getWithUsersAndDataSources(groupId);
+        if (userGroup.getDataSources().stream().anyMatch(ds -> ds.getId() == dataSourceId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        post(url, new JSONObject().put(DATA_SOURCE_ID, dataSourceId).toString());
+        post(url, new JSONObject().put(DATA_SOURCE_ID, dataSourceId).toString(), CheckResponseStatus.NO);
         return true;
     }
 
@@ -206,13 +207,13 @@ public class RedashClient {
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
     public boolean removeUserFromGroup(int userId, int groupId) throws IOException {
-        User user = getUserById(userId);
-        checkIfUserGroupExists(groupId);
-        if (!user.getGroups().contains(groupId)) {
+        checkIfEntityExists(User.class, userId);
+        UserGroup userGroup = getWithUsersAndDataSources(groupId);
+        if (userGroup.getUsers().stream().noneMatch(u -> u.getId() == userId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + MEMBERS_URL_PREFIX + "/" + userId + API_KEY_URL_PARAM + apiKey;
-        delete(url, false);
+        delete(url, CheckResponseStatus.NO);
         return true;
     }
 
@@ -224,13 +225,13 @@ public class RedashClient {
      * @throws IOException              if server is not available due to connection error or API key is invalid.
      */
     public boolean removeDataSourceFromGroup(int dataSourceId, int groupId) throws IOException {
-        DataSource dataSource = getDataSourceById(dataSourceId);
-        checkIfUserGroupExists(groupId);
-        if (!dataSource.getGroups().keySet().contains(groupId)) {
+        checkIfEntityExists(DataSource.class, dataSourceId);
+        UserGroup userGroup = getWithUsersAndDataSources(groupId);
+        if (userGroup.getDataSources().stream().noneMatch(ds -> ds.getId() == dataSourceId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + DATA_SOURCES_URL_PREFIX + "/" + dataSourceId + API_KEY_URL_PARAM + apiKey;
-        delete(url, false);
+        delete(url, CheckResponseStatus.NO);
         return true;
     }
 
@@ -242,8 +243,9 @@ public class RedashClient {
      */
     public List<UserGroup> getUserGroups() throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        Type listType = new TypeToken<ArrayList<UserGroup>>() {}.getType();
-        return new Gson().fromJson(get(url), listType);
+        Type listType = new TypeToken<ArrayList<UserGroup>>() {
+        }.getType();
+        return new Gson().fromJson(get(url, CheckResponseStatus.YES), listType);
     }
 
     /**
@@ -255,7 +257,7 @@ public class RedashClient {
      */
     public boolean deleteUserGroup(int userGroupId) throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + API_KEY_URL_PARAM + apiKey;
-        String response = delete(url);
+        String response = delete(url, CheckResponseStatus.NO);
         if (!NULL.equals(response) && !MESSAGE_INTERNAL_SERVER_ERROR.equals(new JSONObject(response).getString(MESSAGE))) {
             throw new IOException(response);
         }
@@ -270,8 +272,9 @@ public class RedashClient {
      */
     public List<User> getUsers() throws IOException {
         String url = baseUrl + USERS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        Type listType = new TypeToken<ArrayList<User>>() {}.getType();
-        return new Gson().fromJson(get(url), listType);
+        Type listType = new TypeToken<ArrayList<User>>() {
+        }.getType();
+        return new Gson().fromJson(get(url, CheckResponseStatus.YES), listType);
     }
 
     /**
@@ -313,7 +316,7 @@ public class RedashClient {
      */
     public UserGroup getUserGroupById(int userGroupId) throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + API_KEY_URL_PARAM + apiKey;
-        String returnValue = get(url, false);
+        String returnValue = get(url, CheckResponseStatus.NO);
         return resultResolver(UserGroup.class, returnValue);
     }
 
@@ -326,7 +329,7 @@ public class RedashClient {
      */
     public User getUserById(int userId) throws IOException {
         String url = baseUrl + USERS_URL_PREFIX + "/" + userId + API_KEY_URL_PARAM + apiKey;
-        String returnValue = get(url, false);
+        String returnValue = get(url, CheckResponseStatus.NO);
         return resultResolver(User.class, returnValue);
     }
 
@@ -339,12 +342,25 @@ public class RedashClient {
      */
     public DataSource getDataSourceById(int id) throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + "/" + id + API_KEY_URL_PARAM + apiKey;
-        String returnValue = get(url, false);
+        String returnValue = get(url, CheckResponseStatus.NO);
         JSONObject jsonObject = new JSONObject(returnValue);
         if (jsonObject.has(MESSAGE) && MESSAGE_INTERNAL_SERVER_ERROR.equals(jsonObject.getString(MESSAGE))) {
             throw new IllegalArgumentException(MESSAGE_INTERNAL_SERVER_ERROR);
         }
         return new Gson().fromJson(returnValue, DataSource.class);
+    }
+
+    public UserGroup getWithUsersAndDataSources(int userGroupId) throws IOException {
+        UserGroup userGroup = getUserGroupById(userGroupId);
+        String dataSourcesUrl = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey,
+                usersUrl = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + MEMBERS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
+        Type userListType = new TypeToken<ArrayList<User>>() {}.getType();
+        Type dataSourceListType = new TypeToken<ArrayList<DataSource>>() {}.getType();
+        String usersReturnValue = get(usersUrl, CheckResponseStatus.NO);
+        String dataSourcesReturnValue = get(dataSourcesUrl, CheckResponseStatus.NO);
+        userGroup.setUsers(new Gson().fromJson(usersReturnValue, userListType));
+        userGroup.setDataSources(new Gson().fromJson(dataSourcesReturnValue, dataSourceListType));
+        return userGroup;
     }
 
     private boolean isDataSourceAlreadyUpToDate(DataSource fromDataBase, DataSource whichToUpdate) {
@@ -362,13 +378,9 @@ public class RedashClient {
         return new JSONObject(json).getInt(ID);
     }
 
-    private void checkIfUserGroupExists(int groupId) throws IOException {
-        getUserGroupById(groupId);
-    }
-
     private <T extends BaseEntity> T resultResolver(Class<T> type, String returnValue) throws IOException {
         JSONObject jsonObject = new JSONObject(returnValue);
-        if (jsonObject.has(AUTH_TYPE) || jsonObject.has(CREATED_AT)) {
+        if (jsonObject.has(AUTH_TYPE) || jsonObject.has(CREATED_AT) || jsonObject.has("name")) {
             return new Gson().fromJson(returnValue, type);
         }
         if (jsonObject.getString(MESSAGE).startsWith(MESSAGE_URL_NOT_FOUND) ||
@@ -378,19 +390,7 @@ public class RedashClient {
         throw new IOException(returnValue);
     }
 
-    private String post(String url, String json) throws IOException {
-        return post(url, json, false);
-    }
-
-    private String get(String url) throws IOException {
-        return get(url, true);
-    }
-
-    private String delete(String url) throws IOException {
-        return delete(url, false);
-    }
-
-    private String post(String url, String json, boolean checkResponseStatus) throws IOException {
+    private String post(String url, String json, CheckResponseStatus checkResponseStatus) throws IOException {
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url(url)
@@ -400,7 +400,7 @@ public class RedashClient {
         return this.performCall(request, checkResponseStatus);
     }
 
-    private String get(String url, boolean checkResponseStatus) throws IOException {
+    private String get(String url, CheckResponseStatus checkResponseStatus) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -409,7 +409,7 @@ public class RedashClient {
         return this.performCall(request, checkResponseStatus);
     }
 
-    private String delete(String url, boolean checkResponseStatus) throws IOException {
+    private String delete(String url, CheckResponseStatus checkResponseStatus) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
                 .delete()
@@ -418,12 +418,20 @@ public class RedashClient {
         return this.performCall(request, checkResponseStatus);
     }
 
-    private String performCall(Request request, boolean checkResponseStatus) throws IOException {
+    private String performCall(Request request, CheckResponseStatus checkResponseStatus) throws IOException {
         try (Response response = client.newCall(request).execute()) {
-            if (checkResponseStatus && !response.isSuccessful()) {
+            if (checkResponseStatus == CheckResponseStatus.YES && !response.isSuccessful()) {
                 throw new IOException(response.message());
             }
             return response.body().string();
+        }
+    }
+
+    private void checkIfEntityExists(Class<? extends BaseEntity> clazz, int id) throws IOException {
+        if (User.class.equals(clazz)) {
+            getUserById(id);
+        } else if (DataSource.class.equals(clazz)) {
+            getDataSourceById(id);
         }
     }
 }

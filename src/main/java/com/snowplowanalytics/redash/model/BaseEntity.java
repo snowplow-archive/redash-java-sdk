@@ -23,13 +23,13 @@ public class BaseEntity {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public BaseEntity(String name, int id) {
         this.name = name;
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {

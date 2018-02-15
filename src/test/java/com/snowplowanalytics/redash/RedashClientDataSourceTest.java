@@ -13,6 +13,7 @@
 
 package com.snowplowanalytics.redash;
 
+import com.snowplowanalytics.redash.model.UserGroup;
 import com.snowplowanalytics.redash.model.datasource.DataSource;
 import com.snowplowanalytics.redash.model.datasource.RedshiftDataSource;
 import org.junit.Assert;
@@ -159,12 +160,12 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
     @Test
     public void addDataSourceToGroupTest() throws IOException {
         int id = redashClient.createDataSource(rds);
-        Assert.assertTrue(redashClient.getDataSource(rds.getName()).getGroups().size() == 1);
+        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(adminGroup.getId());
+        Assert.assertTrue(groupFromDb.getDataSources().isEmpty());
         Assert.assertTrue(redashClient.addDataSourceToGroup(id, adminGroup.getId()));
-        DataSource fromDb = redashClient.getDataSource(rds.getName());
-        Assert.assertTrue(fromDb.getGroups().size() == 2);
-        Assert.assertTrue(fromDb.getGroups().containsKey(adminGroup.getId()));
-        Assert.assertTrue(fromDb.getGroups().containsKey(defaultGroup.getId()));
+        groupFromDb = redashClient.getWithUsersAndDataSources(adminGroup.getId());
+        Assert.assertTrue(groupFromDb.getDataSources().size() == 1);
+        Assert.assertTrue(simpleDatasourceMatcher(groupFromDb.getDataSources().get(0)));
         Assert.assertFalse(redashClient.addDataSourceToGroup(id, adminGroup.getId()));
     }
 
@@ -188,27 +189,24 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
     @Test
     public void removeDataSourceFromGroupTest() throws IOException {
         int id = redashClient.createDataSource(rds);
-        DataSource fromDb = redashClient.getDataSource(rds.getName());
-        Assert.assertTrue(fromDb.getGroups().size() == 1);
+        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
+        Assert.assertTrue(groupFromDb.getDataSources().size() == 1);
         Assert.assertTrue(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId()));
-        Assert.assertTrue(redashClient.getDataSource(rds.getName()).getGroups().isEmpty());
+        groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
+        Assert.assertTrue(groupFromDb.getDataSources().isEmpty());
         Assert.assertFalse(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId()));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void removeNonExistingDataSourceFromGroupTest() throws IOException {
         int id = redashClient.createDataSource(rds);
-        DataSource fromDb = redashClient.getDataSource("wrongName" + rds.getName());
-        Assert.assertTrue(fromDb.getGroups().size() == 1);
-        Assert.assertTrue(redashClient.removeDataSourceFromGroup(id + 1, defaultGroup.getId()));
+        redashClient.removeDataSourceFromGroup(id + 1, defaultGroup.getId());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void removeDataSourceFromNonExistingGroupTest() throws IOException {
         int id = redashClient.createDataSource(rds);
-        DataSource fromDb = redashClient.getDataSource(rds.getName());
-        Assert.assertTrue(fromDb.getGroups().size() == 1);
-        Assert.assertTrue(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId() + 1));
+        redashClient.removeDataSourceFromGroup(id, defaultGroup.getId() + 1);
     }
 
     @Test(expected = IOException.class)
@@ -218,7 +216,9 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
     }
 
     public static boolean dataSourceMatcher(DataSource first, DataSource second) {
-        if (first.getName() == null || first.getType() == null) return false;
+        if (first.getName() == null || first.getType() == null) {
+            return false;
+        }
         return first.getName().equals(second.getName()) &&
                 first.getType().equals(second.getType()) &&
                 first.getHost().equals(second.getHost()) &&
@@ -227,17 +227,20 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
                 first.getUser().equals(second.getUser());
     }
 
-    private boolean simpleDatasourceMatcher(DataSource dataSource) {
-        if (dataSource.getName() == null || dataSource.getType() == null) return false;
+    public static boolean simpleDatasourceMatcher(DataSource dataSource) {
+        if (dataSource.getName() == null || dataSource.getType() == null) {
+            return false;
+        }
         return dataSource.getName().equals(rds.getName()) && dataSource.getType().equals(rds.getType());
     }
 
     private void wipeDataSources() throws IOException {
-        redashClient.getDataSources().forEach(dataSource -> {
-            try {
-                redashClient.deleteDataSource(dataSource.getId());
-            } catch (IOException e) {
-            }
-        });
+        List<DataSource> dataSources = redashClient.getDataSources();
+        if  (dataSources.isEmpty()) {
+            return;
+        }
+        for(DataSource ds:dataSources){
+            redashClient.deleteDataSource(ds.getId());
+        }
     }
 }

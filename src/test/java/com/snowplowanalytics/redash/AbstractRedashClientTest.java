@@ -24,7 +24,7 @@ import java.util.Properties;
 
 public class AbstractRedashClientTest {
     public static RedashClient redashClient, wrongClient;
-    public RedshiftDataSource rds = new RedshiftDataSource.RedshiftDataSourceBuilder("name")
+    public static RedshiftDataSource rds = new RedshiftDataSource.RedshiftDataSourceBuilder("name")
             .host("host")
             .port(5439)
             .user("user")

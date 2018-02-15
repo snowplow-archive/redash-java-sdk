@@ -22,8 +22,10 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import static com.snowplowanalytics.redash.RedashClientDataSourceTest.dataSourceMatcher;
+import static com.snowplowanalytics.redash.RedashClientDataSourceTest.simpleDatasourceMatcher;
 
 public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
 
@@ -48,9 +50,14 @@ public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
         DataSource dataSource = redashClient.getDataSource(rds.getName());
         Assert.assertTrue(dataSourceMatcher(dataSource, rds));
         Assert.assertTrue(redashClient.addDataSourceToGroup(dataSourceId, userGroupId));
-        Assert.assertTrue(redashClient.getDataSource(rds.getName()).getGroups().containsKey(userGroupId));
+        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(userGroupId);
+        Assert.assertTrue(groupFromDb.getUsers().size() == 1);
+        Assert.assertTrue(groupFromDb.getDataSources().size() == 1);
+        Assert.assertTrue(groupFromDb.getUsers().contains(defaultUser));
+        Assert.assertTrue(simpleDatasourceMatcher(groupFromDb.getDataSources().get(0)));
         Assert.assertTrue(redashClient.removeDataSourceFromGroup(dataSource.getId(), userGroupId));
-        Assert.assertFalse(redashClient.getDataSource(dataSource.getName()).getGroups().containsKey(userGroupId));
+        groupFromDb = redashClient.getWithUsersAndDataSources(userGroupId);
+        Assert.assertTrue(groupFromDb.getDataSources().isEmpty());
     }
 
     /*  UA - 2
@@ -61,31 +68,25 @@ public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
     public void secondScenarioTest() throws IOException {
         int dataSourceId = redashClient.createDataSource(rds);
         UserGroup userGroup = new UserGroup("test group");
-        int userGroupId = redashClient.createUserGroup(userGroup);
-        redashClient.getUserGroups()
-                .stream()
-                .filter(ug -> ug.getId() != defaultUser.getId())
-                .forEach(ug -> {
-                    try {
-                        Assert.assertTrue(
-                                redashClient.addDataSourceToGroup(dataSourceId, ug.getId())
-                        );
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-
-        Assert.assertTrue(redashClient
-                .getDataSource(rds.getName()).getGroups().keySet()
-                .containsAll(Arrays.asList(defaultUser.getId(), adminUser.getId(), userGroupId)));
+        redashClient.createUserGroup(userGroup);
+        List<UserGroup> groups = redashClient.getUserGroups();
+        for (UserGroup ug : groups) {
+            if (ug.getId() != defaultGroup.getId()) {
+                Assert.assertTrue(redashClient.addDataSourceToGroup(dataSourceId, ug.getId()));
+            }
+        }
+        groups = redashClient.getUserGroups();
+        for (UserGroup ug : groups) {
+            if (ug.getId() != defaultGroup.getId()) {
+                Assert.assertTrue(simpleDatasourceMatcher(redashClient.getWithUsersAndDataSources(ug.getId()).getDataSources().get(0)));
+            }
+        }
     }
 
     private void wipeDataSources() throws IOException {
-        redashClient.getDataSources().forEach(dataSource -> {
-            try {
-                redashClient.deleteDataSource(dataSource.getId());
-            } catch (IOException e) {
-            }
-        });
+        List<DataSource> dataSources = redashClient.getDataSources();
+        for (DataSource ds : dataSources) {
+            redashClient.deleteDataSource(ds.getId());
+        }
     }
 }
