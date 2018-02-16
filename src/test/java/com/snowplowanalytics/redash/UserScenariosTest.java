@@ -67,8 +67,10 @@ public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
     @Test
     public void secondScenarioTest() throws IOException {
         int dataSourceId = redashClient.createDataSource(rds);
-        UserGroup userGroup = new UserGroup("test group");
-        redashClient.createUserGroup(userGroup);
+        for(int i = 0; i<5; i++){
+            UserGroup userGroup = new UserGroup("test group" + i);
+            redashClient.createUserGroup(userGroup);
+        }
         List<UserGroup> groups = redashClient.getUserGroups();
         for (UserGroup ug : groups) {
             if (ug.getId() != defaultGroup.getId()) {

@@ -16,18 +16,27 @@ package com.snowplowanalytics.redash.model.datasource;
 import com.google.gson.annotations.SerializedName;
 
 public class Options {
-    private String host;
-    private int port;
-    private String user;
-    private String password;
+
+    private final String host;
+    private final int port;
+    private final String user;
+    private final String password;
     @SerializedName("dbname")
-    private String dbName;
+    private final String dbName;
 
     public Options(String host, int port, String user, String password, String dbName) {
         this.host = host;
         this.port = port;
         this.user = user;
         this.password = password;
+        this.dbName = dbName;
+    }
+
+    public Options(String host, int port, String user, String dbName) {
+        this.host = host;
+        this.port = port;
+        this.user = user;
+        this.password = null;
         this.dbName = dbName;
     }
 

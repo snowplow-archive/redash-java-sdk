@@ -16,8 +16,9 @@ package com.snowplowanalytics.redash.model.datasource;
 import com.snowplowanalytics.redash.model.BaseEntity;
 
 public class DataSource extends BaseEntity{
-    private String type;
-    private Options options;
+
+    private final String type;
+    private final Options options;
 
     public DataSource(String name, String host, int port, String user, String password, String dbName, String type) {
         super(name);

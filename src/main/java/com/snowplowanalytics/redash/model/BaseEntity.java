@@ -16,6 +16,7 @@ package com.snowplowanalytics.redash.model;
 import java.util.Objects;
 
 public class BaseEntity {
+
     private String name;
     private int id;
 

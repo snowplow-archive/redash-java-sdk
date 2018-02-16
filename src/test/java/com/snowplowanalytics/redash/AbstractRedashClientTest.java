@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class AbstractRedashClientTest {
+
     public static RedashClient redashClient, wrongClient;
     public static RedshiftDataSource rds = new RedshiftDataSource.RedshiftDataSourceBuilder("name")
             .host("host")

@@ -27,11 +27,11 @@ import static com.snowplowanalytics.redash.RedashClient.*;
 import static org.hamcrest.core.Is.is;
 
 /**
-    All tests should be performed on clear database without any data sources.
-    For that purpose there's implemented wipeDataSources() method.
-    IT WILL DROP DATA SOURCES FROM REDASH SERVER
-    You may uncomment it if you had some troubles in tests and there's a trash data which you want to delete.
-*/
+ * All tests should be performed on clear database without any data sources.
+ * For that purpose there's implemented wipeDataSources() method.
+ * IT WILL DROP DATA SOURCES FROM REDASH SERVER
+ * You may uncomment it if you had some troubles in tests and there's a trash data which you want to delete.
+ */
 
 public class RedashClientDataSourceTest extends AbstractRedashClientTest {
 
@@ -47,7 +47,6 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         List<DataSource> dataSourceList = redashClient.getDataSources();
         Assert.assertTrue(dataSourceList.size() == 1);
         Assert.assertTrue(simpleDatasourceMatcher(dataSourceList.get(0)));
-
         redashClient.deleteDataSource(id);
         dataSourceList = redashClient.getDataSources();
         Assert.assertTrue(dataSourceList.isEmpty());
@@ -65,7 +64,7 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         redashClient.deleteDataSource(id);
         List<DataSource> dataSourceList = redashClient.getDataSources();
         Assert.assertTrue(dataSourceList.isEmpty());
-
+        Assert.assertFalse(redashClient.deleteDataSource(id));
     }
 
     @Test
@@ -119,15 +118,9 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         redashClient.deleteDataSource(id);
     }
 
-    @Test
+    @Test(expected = IOException.class)
     public void updateDataSourceWithExceptionTest() throws IOException {
-        int id = redashClient.createDataSource(rds);
-        try {
-            wrongClient.updateDataSource(rds);
-        } catch (Exception e) {
-        } finally {
-            redashClient.deleteDataSource(id);
-        }
+        wrongClient.updateDataSource(rds);
     }
 
     @Test
@@ -236,10 +229,10 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
 
     private void wipeDataSources() throws IOException {
         List<DataSource> dataSources = redashClient.getDataSources();
-        if  (dataSources.isEmpty()) {
+        if (dataSources.isEmpty()) {
             return;
         }
-        for(DataSource ds:dataSources){
+        for (DataSource ds : dataSources) {
             redashClient.deleteDataSource(ds.getId());
         }
     }

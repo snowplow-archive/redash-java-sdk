@@ -100,8 +100,8 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
     public void getUsersTest() throws IOException {
         List<User> users = redashClient.getUsers();
         Assert.assertTrue(users.size() == 2);
-        Assert.assertTrue(users.get(1).equals(adminUser));
-        Assert.assertTrue(users.get(0).equals(defaultUser));
+        Assert.assertTrue(users.get(0).equals(adminUser));
+        Assert.assertTrue(users.get(1).equals(defaultUser));
     }
 
     @Test(expected = IOException.class)
