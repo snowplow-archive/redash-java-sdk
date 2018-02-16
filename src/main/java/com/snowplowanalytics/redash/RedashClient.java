@@ -92,13 +92,12 @@ public class RedashClient {
     }
 
     /**
-     * Updates data-source on Redash server with provided as argument DataSource instance. If you want to update the
-     * password so you should provide it along with correct values of the other fields.
-     * In the case if provided data-source instance has null or empty password field then entity wouldn't be updated.
+     * Updates data-source on Redash server with provided as argument DataSource instance. Please note that all the argument's
+     * fields should be present and have correct values.
      * @param dataSource Argument's name field is used to find specific data-source on the server which (if found) then
-     *                   will be updated by it's fields, if it is necessary.
-     * @return false, if all the fields except password are equals, and there is nothing to update.
-     * True if one or more fields needs to be updated.
+     *                   will be updated by it's fields.
+     * @return false, if any of the argument's fields have null or empty value.
+     * True if entity successfully updated.
      * @throws IOException with the message that the server response in the case if data-source with provided name
      *                     couldn't be found, or wrong API key, or there is any connection error.
      */
@@ -109,7 +108,7 @@ public class RedashClient {
         } catch (IllegalArgumentException e) {
             throw new IOException(e.getMessage());
         }
-        if (isDataSourceAlreadyUpToDate(fromDataBase, dataSource)) {
+        if (dataSourceIsInValid(dataSource)) {
             return false;
         }
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + "/" + fromDataBase.getId() + API_KEY_URL_PARAM + apiKey;
@@ -377,11 +376,13 @@ public class RedashClient {
         return userGroup;
     }
 
-    private boolean isDataSourceAlreadyUpToDate(DataSource fromDataBase, DataSource whichToUpdate) {
-        return fromDataBase.getHost().equals(whichToUpdate.getHost())
-                && fromDataBase.getPort() == whichToUpdate.getPort()
-                && fromDataBase.getUser().equals(whichToUpdate.getUser())
-                && fromDataBase.getDbName().equals(whichToUpdate.getDbName());
+    private boolean dataSourceIsInValid(DataSource dataSource) {
+        return  dataSource.getName() == null || dataSource.getName().isEmpty()
+                || dataSource.getHost() == null || dataSource.getHost().isEmpty()
+                || dataSource.getPort() == 0
+                || dataSource.getUser() == null || dataSource.getUser().isEmpty()
+                || dataSource.getPassword() == null || dataSource.getPassword().isEmpty()
+                || dataSource.getDbName() == null || dataSource.getDbName().isEmpty();
     }
 
     private boolean isEntityAlreadyExists(List<? extends BaseEntity> list, String name) throws IOException {
