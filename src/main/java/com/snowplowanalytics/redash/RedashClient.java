@@ -92,13 +92,9 @@ public class RedashClient {
     }
 
     /**
-     * Updates data-source on Redash server with provided as argument DataSource instance. Please note that password field
-     * doesn't take a part in making decision of necessity to update data-source as the server returns it in safe manner
-     * as an "-" symbols. This means that if one of fields (between transfer object and that which lies onto Redash
-     * instance) is different then password will be overwritten too. If there's no difference between all the fields
-     * (password field doesn't matter, again), then updating process will not be triggered at all, and password will
-     * stay the same.
-     *
+     * Updates data-source on Redash server with provided as argument DataSource instance. If you want to update the
+     * password so you should provide it along with correct values of the other fields.
+     * In the case if provided data-source instance has null or empty password field then entity wouldn't be updated.
      * @param dataSource Argument's name field is used to find specific data-source on the server which (if found) then
      *                   will be updated by it's fields, if it is necessary.
      * @return false, if all the fields except password are equals, and there is nothing to update.
@@ -128,8 +124,7 @@ public class RedashClient {
      */
     public List<DataSource> getDataSources() throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        Type listType = new TypeToken<ArrayList<DataSource>>() {
-        }.getType();
+        Type listType = new TypeToken<ArrayList<DataSource>>() {}.getType();
         return new Gson().fromJson(get(url, CheckResponseStatus.YES), listType);
     }
 
@@ -255,8 +250,7 @@ public class RedashClient {
      */
     public List<UserGroup> getUserGroups() throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        Type listType = new TypeToken<ArrayList<UserGroup>>() {
-        }.getType();
+        Type listType = new TypeToken<ArrayList<UserGroup>>() {}.getType();
         return new Gson().fromJson(get(url, CheckResponseStatus.YES), listType);
     }
 

@@ -32,14 +32,6 @@ public class Options {
         this.dbName = dbName;
     }
 
-    public Options(String host, int port, String user, String dbName) {
-        this.host = host;
-        this.port = port;
-        this.user = user;
-        this.password = null;
-        this.dbName = dbName;
-    }
-
     public String getHost() {
         return host;
     }
