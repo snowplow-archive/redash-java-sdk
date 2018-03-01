@@ -16,10 +16,9 @@ package com.snowplowanalytics.redash;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.snowplowanalytics.redash.model.BaseEntity;
+import com.snowplowanalytics.redash.model.Group;
 import com.snowplowanalytics.redash.model.User;
-import com.snowplowanalytics.redash.model.UserGroup;
 import com.snowplowanalytics.redash.model.datasource.DataSource;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import okhttp3.*;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,7 +76,7 @@ public class RedashClient {
      * @param dataSource data transfer object which should contain all necessary information.
      * @return int id of successfully (if so) created instance. In this case object that was transferred as argument
      * receives that id.
-     * @throws IOException              if server is unavailable due to connection error or the API key is invalid.
+     * @throws IOException              if server is unavailable due to connection error or if {@code url} is not a valid HTTP or HTTPS URL.
      * @throws IllegalArgumentException if there is already a data-source with this name on the Redash server.
      */
     public int createDataSource(DataSource dataSource) throws IOException, IllegalArgumentException {
@@ -99,7 +98,7 @@ public class RedashClient {
      * @return false, if any of the argument's fields have null or empty value.
      * True if entity successfully updated.
      * @throws IOException with the message that the server response in the case if data-source with provided name
-     *                     couldn't be found, or wrong API key, or there is any connection error.
+     *         couldn't be found, or if {@code url} is not a valid HTTP or HTTPS URL, or there is any connection error.
      */
     public boolean updateDataSource(DataSource dataSource) throws IOException {
         DataSource fromDataBase;
@@ -119,7 +118,8 @@ public class RedashClient {
     /**
      * @return ArrayList<DataSource> of all existing data-sources on the server. If there are no data-sources then the list
      * will be empty.
-     * @throws IOException if server is not available due to connection error or API key is invalid.
+     * @throws IOException if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public List<DataSource> getDataSources() throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
@@ -133,7 +133,8 @@ public class RedashClient {
      * @param dataSourceId id of data-source which will be deleted if it exists.
      * @return false if data-source with provided id doesn't exist on the server, if it does then data-source will be
      * deleted and true will be returned.
-     * @throws IOException if server is not available due to connection error or API key is invalid.
+     * @throws IOException if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public boolean deleteDataSource(int dataSourceId) throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + "/" + dataSourceId + API_KEY_URL_PARAM + apiKey;
@@ -151,20 +152,21 @@ public class RedashClient {
     /**
      * Creates user-group onto Redash server
      *
-     * @param userGroup should contain correct value name field, as it will be used in creation.
+     * @param group should contain correct value name field, as it will be used in creation.
      * @return id of newly created group, if there wasn't with such name, and in this case argument's id field will
      * be set by value that was generated and returned by server in the response body.
      * @throws IllegalArgumentException if there is already exists user-group with the name provided inside dataSource
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
-    public int createUserGroup(UserGroup userGroup) throws IOException {
-        if (isEntityAlreadyExists(getUserGroups(), userGroup.getName())) {
+    public int createUserGroup(Group group) throws IOException {
+        if (isEntityAlreadyExists(getUserGroups(), group.getName())) {
             throw new IllegalArgumentException(USER_GROUP_ALREADY_EXISTS);
         }
         String url = baseUrl + GROUPS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        String returnValue = post(url, new Gson().toJson(userGroup), CheckResponseStatus.YES);
+        String returnValue = post(url, new Gson().toJson(group), CheckResponseStatus.YES);
         int id = getIdFromJson(returnValue);
-        userGroup.setId(id);
+        group.setId(id);
         return id;
     }
 
@@ -174,12 +176,13 @@ public class RedashClient {
      * @return false if specified user-group already contains specified user, true if not and user was successfully added.
      * @throws IllegalArgumentException if no user or no user group with provided userId and userGroupId accordingly exist
      *                                  onto Redash server.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public boolean addUserToGroup(int userId, int groupId) throws IOException {
         checkIfEntityExists(User.class, userId);
-        UserGroup userGroup = getWithUsersAndDataSources(groupId);
-        if (userGroup.getUsers().stream().anyMatch(u -> u.getId() == userId)) {
+        Group group = getWithUsersAndDataSources(groupId);
+        if (group.getUsers().stream().anyMatch(u -> u.getId() == userId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + MEMBERS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
@@ -192,12 +195,13 @@ public class RedashClient {
      *
      * @return false if data-source already attached to group, true if not and has just added successfully to group
      * @throws IllegalArgumentException if data-source or user-group does not exist
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public boolean addDataSourceToGroup(int dataSourceId, int groupId) throws IOException {
         checkIfEntityExists(DataSource.class, dataSourceId);
-        UserGroup userGroup = getWithUsersAndDataSources(groupId);
-        if (userGroup.getDataSources().stream().anyMatch(ds -> ds.getId() == dataSourceId)) {
+        Group group = getWithUsersAndDataSources(groupId);
+        if (group.getDataSources().stream().anyMatch(ds -> ds.getId() == dataSourceId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
@@ -210,12 +214,13 @@ public class RedashClient {
      *
      * @return false if user is not a member of group, true if it is and then it will be successfully removed.
      * @throws IllegalArgumentException if either user or user-group does not exist.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public boolean removeUserFromGroup(int userId, int groupId) throws IOException {
         checkIfEntityExists(User.class, userId);
-        UserGroup userGroup = getWithUsersAndDataSources(groupId);
-        if (userGroup.getUsers().stream().noneMatch(u -> u.getId() == userId)) {
+        Group group = getWithUsersAndDataSources(groupId);
+        if (group.getUsers().stream().noneMatch(u -> u.getId() == userId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + MEMBERS_URL_PREFIX + "/" + userId + API_KEY_URL_PARAM + apiKey;
@@ -228,12 +233,13 @@ public class RedashClient {
      *
      * @return false if data-source is not attached to group, true if it is and then it will be successfully removed.
      * @throws IllegalArgumentException if either data-source or user-group does not exist.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public boolean removeDataSourceFromGroup(int dataSourceId, int groupId) throws IOException {
         checkIfEntityExists(DataSource.class, dataSourceId);
-        UserGroup userGroup = getWithUsersAndDataSources(groupId);
-        if (userGroup.getDataSources().stream().noneMatch(ds -> ds.getId() == dataSourceId)) {
+        Group group = getWithUsersAndDataSources(groupId);
+        if (group.getDataSources().stream().noneMatch(ds -> ds.getId() == dataSourceId)) {
             return false;
         }
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + groupId + DATA_SOURCES_URL_PREFIX + "/" + dataSourceId + API_KEY_URL_PARAM + apiKey;
@@ -242,14 +248,15 @@ public class RedashClient {
     }
 
     /**
-     * Retrieves all the user-groups from Redash server and maps them to UserGroup class.
+     * Retrieves all the user-groups from Redash server and maps them to Group class.
      *
-     * @return List<UserGroup> as result which will contain at least two user groups with names "admin" and "default".
-     * @throws IOException if server is not available due to connection error or API key is invalid.
+     * @return List<Group> as result which will contain at least two user groups with names "admin" and "default".
+     * @throws IOException if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
-    public List<UserGroup> getUserGroups() throws IOException {
+    public List<Group> getUserGroups() throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
-        Type listType = new TypeToken<ArrayList<UserGroup>>() {}.getType();
+        Type listType = new TypeToken<ArrayList<Group>>() {}.getType();
         return new Gson().fromJson(get(url, CheckResponseStatus.YES), listType);
     }
 
@@ -258,7 +265,8 @@ public class RedashClient {
      *
      * @return true if user group with specified id was found on server and successfully deleted, false if the user-group
      * wasn't found and so couldn't be deleted.
-     * @throws IOException if server is not available due to connection error or API key is invalid.
+     * @throws IOException if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public boolean deleteUserGroup(int userGroupId) throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + API_KEY_URL_PARAM + apiKey;
@@ -273,7 +281,8 @@ public class RedashClient {
      * Retrieves all the existing users server from redash server, maps them onto User class and
      * returns instances as List.
      *
-     * @throws IOException if server is not available due to connection error or API key is invalid.
+     * @throws IOException if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public List<User> getUsers() throws IOException {
         String url = baseUrl + USERS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
@@ -287,7 +296,8 @@ public class RedashClient {
      *
      * @param userName the name of user which will be returned as result if successfully found.
      * @throws IllegalArgumentException if user with provided name wasn't found between existing on the Redash server.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public User getUser(String userName) throws IOException {
         Optional<User> result = getUsers().stream().filter(e -> userName.equals(e.getName())).findFirst();
@@ -302,7 +312,8 @@ public class RedashClient {
      *
      * @param dataSourceName the name of data-source which will be returned as result if successfully found.
      * @throws IllegalArgumentException if data-source with provided name wasn't found between existing on the Redash server.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public DataSource getDataSource(String dataSourceName) throws IOException {
         Optional<DataSource> result = getDataSources().stream().filter(e -> dataSourceName.equals(e.getName())).findFirst();
@@ -315,14 +326,15 @@ public class RedashClient {
     /**
      * Provides opportunity to retrieve the user-group from redash server by it's id. Implemented as util method.
      *
-     * @return UserGroup instance.
+     * @return Group instance.
      * @throws IllegalArgumentException if there is no user-group with such id.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
-    public UserGroup getUserGroupById(int userGroupId) throws IOException {
+    public Group getGroupById(int userGroupId) throws IOException {
         String url = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + API_KEY_URL_PARAM + apiKey;
         String returnValue = get(url, CheckResponseStatus.NO);
-        return resultResolver(UserGroup.class, returnValue);
+        return resultResolver(Group.class, returnValue);
     }
 
     /**
@@ -330,7 +342,8 @@ public class RedashClient {
      *
      * @return User instance.
      * @throws IllegalArgumentException if there is no user with such id.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public User getUserById(int userId) throws IOException {
         String url = baseUrl + USERS_URL_PREFIX + "/" + userId + API_KEY_URL_PARAM + apiKey;
@@ -343,7 +356,8 @@ public class RedashClient {
      *
      * @return DataSource instance
      * @throws IllegalArgumentException if there is no user-group with such id
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
     public DataSource getDataSourceById(int id) throws IOException {
         String url = baseUrl + DATA_SOURCES_URL_PREFIX + "/" + id + API_KEY_URL_PARAM + apiKey;
@@ -361,19 +375,20 @@ public class RedashClient {
      * user-group entity.
      * @param userGroupId specifies the user-group which should be returned.
      * @throws IllegalArgumentException if there is no user-group with such id.
-     * @throws IOException              if server is not available due to connection error or API key is invalid.
+     * @throws IOException              if server is not available due to connection error or API key is invalid, or
+     * if {@code url} is not a valid HTTP or HTTPS URL.
      */
-    public UserGroup getWithUsersAndDataSources(int userGroupId) throws IOException {
-        UserGroup userGroup = getUserGroupById(userGroupId);
+    public Group getWithUsersAndDataSources(int userGroupId) throws IOException {
+        Group group = getGroupById(userGroupId);
         String dataSourcesUrl = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + DATA_SOURCES_URL_PREFIX + API_KEY_URL_PARAM + apiKey,
                 usersUrl = baseUrl + GROUPS_URL_PREFIX + "/" + userGroupId + MEMBERS_URL_PREFIX + API_KEY_URL_PARAM + apiKey;
         Type userListType = new TypeToken<ArrayList<User>>() {}.getType();
         Type dataSourceListType = new TypeToken<ArrayList<DataSource>>() {}.getType();
         String usersReturnValue = get(usersUrl, CheckResponseStatus.YES);
         String dataSourcesReturnValue = get(dataSourcesUrl, CheckResponseStatus.YES);
-        userGroup.setUsers(new Gson().fromJson(usersReturnValue, userListType));
-        userGroup.setDataSources(new Gson().fromJson(dataSourcesReturnValue, dataSourceListType));
-        return userGroup;
+        group.setUsers(new Gson().fromJson(usersReturnValue, userListType));
+        group.setDataSources(new Gson().fromJson(dataSourcesReturnValue, dataSourceListType));
+        return group;
     }
 
     private boolean dataSourceIsInValid(DataSource dataSource) {
@@ -406,6 +421,7 @@ public class RedashClient {
     }
 
     private String post(String url, String json, CheckResponseStatus checkResponseStatus) throws IOException {
+        validateURL(url);
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url(url)
@@ -416,6 +432,7 @@ public class RedashClient {
     }
 
     private String get(String url, CheckResponseStatus checkResponseStatus) throws IOException {
+        validateURL(url);
         Request request = new Request.Builder()
                 .url(url)
                 .get()
@@ -425,6 +442,7 @@ public class RedashClient {
     }
 
     private String delete(String url, CheckResponseStatus checkResponseStatus) throws IOException {
+        validateURL(url);
         Request request = new Request.Builder()
                 .url(url)
                 .delete()
@@ -436,10 +454,18 @@ public class RedashClient {
     private String performCall(Request request, CheckResponseStatus checkResponseStatus) throws IOException {
         try (Response response = client.newCall(request).execute()) {
             if (checkResponseStatus == CheckResponseStatus.YES && !response.isSuccessful()) {
-                throw new IOException(response.message());
+                throw new IOException(anonymisedUrl(response.message()));
             }
             return response.body().string();
         }
+    }
+
+    private void validateURL(String url)throws IOException{
+        if (HttpUrl.parse(url) == null) throw new IOException("Incorrect URL. Please check it and try again");
+    }
+
+    private String anonymisedUrl(String message){
+            return message.contains(apiKey) ? message.replace(apiKey, "XXX") : message;
     }
 
     private void checkIfEntityExists(Class<? extends BaseEntity> clazz, int id) throws IOException {

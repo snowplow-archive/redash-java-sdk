@@ -51,4 +51,15 @@ public class Options {
     public String getDbName() {
         return dbName;
     }
+
+    @Override
+    public String toString() {
+        return "Options{" +
+                "host='" + host + '\'' +
+                ", port=" + port +
+                ", user='" + user + '\'' +
+                ", password='" + password + '\'' +
+                ", dbName='" + dbName + '\'' +
+                '}';
+    }
 }

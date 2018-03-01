@@ -13,8 +13,8 @@
 
 package com.snowplowanalytics.redash;
 
+import com.snowplowanalytics.redash.model.Group;
 import com.snowplowanalytics.redash.model.User;
-import com.snowplowanalytics.redash.model.UserGroup;
 import com.snowplowanalytics.redash.model.datasource.RedshiftDataSource;
 import org.junit.BeforeClass;
 
@@ -34,7 +34,7 @@ public class AbstractRedashClientTest {
             .build();
     public static User adminUser, defaultUser;
     public static String invalidUserName;
-    public static UserGroup adminGroup, defaultGroup;
+    public static Group adminGroup, defaultGroup;
 
     @BeforeClass
     public static void onlyOnce() throws IOException {
@@ -54,12 +54,12 @@ public class AbstractRedashClientTest {
     public static void loadUser() throws IOException {
         Properties prop = new Properties();
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        InputStream stream = loader.getResourceAsStream("user_usergroup.properties");
+        InputStream stream = loader.getResourceAsStream("user_group.properties");
         prop.load(stream);
         adminUser = new User(prop.getProperty("admin_username"), 1);
         defaultUser = new User(prop.getProperty("default_username"), 2);
         invalidUserName = prop.getProperty("non_existent_username");
-        adminGroup = new UserGroup(prop.getProperty("admin_group"), 1);
-        defaultGroup = new UserGroup(prop.getProperty("default_group"), 2);
+        adminGroup = new Group(prop.getProperty("admin_group"), 1);
+        defaultGroup = new Group(prop.getProperty("default_group"), 2);
     }
 }

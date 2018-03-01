@@ -13,7 +13,7 @@
 
 package com.snowplowanalytics.redash;
 
-import com.snowplowanalytics.redash.model.UserGroup;
+import com.snowplowanalytics.redash.model.Group;
 import com.snowplowanalytics.redash.model.datasource.DataSource;
 import com.snowplowanalytics.redash.model.datasource.RedshiftDataSource;
 import org.junit.Assert;
@@ -114,7 +114,6 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
         Assert.assertTrue(redashClient.updateDataSource(created));
         DataSource updatedFromDB = redashClient.getDataSource(rds.getName());
         Assert.assertTrue(dataSourceMatcher(updatedFromDB, created));
-        Assert.assertFalse(redashClient.updateDataSource(created));
         redashClient.deleteDataSource(id);
     }
 
@@ -126,6 +125,7 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
     @Test
     public void getDataSourceTest() throws IOException {
         int id = redashClient.createDataSource(rds);
+        System.out.println(rds.toString());
         DataSource fromDB = redashClient.getDataSource(rds.getName());
         Assert.assertTrue(dataSourceMatcher(fromDB, rds));
         redashClient.deleteDataSource(id);
@@ -153,7 +153,7 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
     @Test
     public void addDataSourceToGroupTest() throws IOException {
         int id = redashClient.createDataSource(rds);
-        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(adminGroup.getId());
+        Group groupFromDb = redashClient.getWithUsersAndDataSources(adminGroup.getId());
         Assert.assertTrue(groupFromDb.getDataSources().isEmpty());
         Assert.assertTrue(redashClient.addDataSourceToGroup(id, adminGroup.getId()));
         groupFromDb = redashClient.getWithUsersAndDataSources(adminGroup.getId());
@@ -182,7 +182,7 @@ public class RedashClientDataSourceTest extends AbstractRedashClientTest {
     @Test
     public void removeDataSourceFromGroupTest() throws IOException {
         int id = redashClient.createDataSource(rds);
-        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
+        Group groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
         Assert.assertTrue(groupFromDb.getDataSources().size() == 1);
         Assert.assertTrue(redashClient.removeDataSourceFromGroup(id, defaultGroup.getId()));
         groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());

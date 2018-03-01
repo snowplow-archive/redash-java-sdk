@@ -60,4 +60,14 @@ public class RedshiftDataSource extends DataSource {
             return new RedshiftDataSource(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "RedshiftDataSource{" +
+                "type='" + getType() + '\'' +
+                ", " + getOptions() +
+                ", name='" + getName() + '\'' +
+                ", id=" + getId() +
+                "} ";
+    }
 }

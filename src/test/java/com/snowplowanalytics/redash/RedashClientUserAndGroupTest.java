@@ -13,9 +13,8 @@
 
 package com.snowplowanalytics.redash;
 
+import com.snowplowanalytics.redash.model.Group;
 import com.snowplowanalytics.redash.model.User;
-import com.snowplowanalytics.redash.model.UserGroup;
-import com.snowplowanalytics.redash.model.datasource.DataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +27,7 @@ import java.util.List;
     For that purpose there's implemented wipeDataSources() method,
     IT WILL DROP USER GROUPS FROM REDASH SERVER EXCEPT ADMIN AND DEFAULT
  */
-public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
+public class RedashClientUserAndGroupTest extends AbstractRedashClientTest {
 
     @Before
     public void setup() throws IOException {
@@ -37,13 +36,13 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void successfulCreateUserGroupTest() throws IOException {
-        List<UserGroup> userGroups = redashClient.getUserGroups();
-        UserGroup created = new UserGroup("testGroup");
-        Assert.assertTrue(userGroups.size() == 2);
+        List<Group> groups = redashClient.getUserGroups();
+        Group created = new Group("testGroup");
+        Assert.assertTrue(groups.size() == 2);
         int id = redashClient.createUserGroup(created);
-        userGroups = redashClient.getUserGroups();
-        Assert.assertTrue(userGroups.size() == 3);
-        Assert.assertTrue(userGroups.contains(created));
+        groups = redashClient.getUserGroups();
+        Assert.assertTrue(groups.size() == 3);
+        Assert.assertTrue(groups.contains(created));
         redashClient.deleteUserGroup(id);
     }
 
@@ -54,7 +53,7 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void deleteUserGroupTest() throws IOException {
-        UserGroup created = new UserGroup("name");
+        Group created = new Group("name");
         int id = redashClient.createUserGroup(created);
         Assert.assertTrue(redashClient.getUserGroups().size() == 3);
         Assert.assertFalse(redashClient.deleteUserGroup(id + 1));
@@ -72,28 +71,28 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void unsuccessfulWithExistingNameCreateUserGroupTest() throws IOException {
-        List<UserGroup> userGroups = redashClient.getUserGroups();
-        Assert.assertTrue(userGroups.size() == 2);
+        List<Group> groups = redashClient.getUserGroups();
+        Assert.assertTrue(groups.size() == 2);
         try {
-            redashClient.createUserGroup(new UserGroup(defaultGroup.getName()));
+            redashClient.createUserGroup(new Group(defaultGroup.getName()));
         } catch (Exception e) {
             Assert.assertTrue(e.getClass().equals(IllegalArgumentException.class));
         }
-        userGroups = redashClient.getUserGroups();
-        Assert.assertTrue(userGroups.size() == 2);
+        groups = redashClient.getUserGroups();
+        Assert.assertTrue(groups.size() == 2);
     }
 
     @Test
     public void unsuccessfulWithWrongClientCreateUserGroupTest() throws IOException {
-        List<UserGroup> userGroups = redashClient.getUserGroups();
-        Assert.assertTrue(userGroups.size() == 2);
+        List<Group> groups = redashClient.getUserGroups();
+        Assert.assertTrue(groups.size() == 2);
         try {
-            wrongClient.createUserGroup(new UserGroup(defaultUser.getName()));
+            wrongClient.createUserGroup(new Group(defaultUser.getName()));
         } catch (Exception e) {
             Assert.assertTrue(e.getClass().equals(IOException.class));
         }
-        userGroups = redashClient.getUserGroups();
-        Assert.assertTrue(userGroups.size() == 2);
+        groups = redashClient.getUserGroups();
+        Assert.assertTrue(groups.size() == 2);
     }
 
     @Test
@@ -127,9 +126,9 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void addUserToUserGroupTest() throws IOException {
-        UserGroup createdUserGroup = new UserGroup("createdForTest");
-        int createdUserGroupId = redashClient.createUserGroup(createdUserGroup);
-        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(createdUserGroupId);
+        Group createdGroup = new Group("createdForTest");
+        int createdUserGroupId = redashClient.createUserGroup(createdGroup);
+        Group groupFromDb = redashClient.getWithUsersAndDataSources(createdUserGroupId);
         User userFromDb = redashClient.getUser(defaultUser.getName());
         Assert.assertFalse(groupFromDb.getUsers().contains(userFromDb));
         Assert.assertTrue(redashClient.addUserToGroup(userFromDb.getId(), createdUserGroupId));
@@ -158,7 +157,7 @@ public class RedashClientUserAndUserGroupTest extends AbstractRedashClientTest {
 
     @Test
     public void removeUserFromGroupTest() throws IOException {
-        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
+        Group groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());
         Assert.assertTrue(groupFromDb.getUsers().size()==2);
         Assert.assertTrue(redashClient.removeUserFromGroup(defaultUser.getId(), defaultGroup.getId()));
         groupFromDb = redashClient.getWithUsersAndDataSources(defaultGroup.getId());

@@ -49,4 +49,12 @@ public class BaseEntity {
     public int hashCode() {
         return Objects.hash(getId(), getName());
     }
+
+    @Override
+    public String toString() {
+        return "BaseEntity{" +
+                "name='" + name + '\'' +
+                ", id=" + id +
+                '}';
+    }
 }

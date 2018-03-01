@@ -13,21 +13,20 @@
 
 package com.snowplowanalytics.redash;
 
+import com.snowplowanalytics.redash.model.Group;
 import com.snowplowanalytics.redash.model.User;
-import com.snowplowanalytics.redash.model.UserGroup;
 import com.snowplowanalytics.redash.model.datasource.DataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.snowplowanalytics.redash.RedashClientDataSourceTest.dataSourceMatcher;
 import static com.snowplowanalytics.redash.RedashClientDataSourceTest.simpleDatasourceMatcher;
 
-public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
+public class UserScenariosTest extends RedashClientUserAndGroupTest {
 
     @Before
     public void isDataSourcesListEmpty() throws IOException {
@@ -42,15 +41,15 @@ public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
     */
     @Test
     public void firstScenarioTest() throws IOException {
-        UserGroup userGroup = new UserGroup("test group");
-        int userGroupId = redashClient.createUserGroup(userGroup);
+        Group group = new Group("test group");
+        int userGroupId = redashClient.createUserGroup(group);
         int dataSourceId = redashClient.createDataSource(rds);
         User user = redashClient.getUser(defaultUser.getName());
         Assert.assertTrue(redashClient.addUserToGroup(user.getId(), userGroupId));
         DataSource dataSource = redashClient.getDataSource(rds.getName());
         Assert.assertTrue(dataSourceMatcher(dataSource, rds));
         Assert.assertTrue(redashClient.addDataSourceToGroup(dataSourceId, userGroupId));
-        UserGroup groupFromDb = redashClient.getWithUsersAndDataSources(userGroupId);
+        Group groupFromDb = redashClient.getWithUsersAndDataSources(userGroupId);
         Assert.assertTrue(groupFromDb.getUsers().size() == 1);
         Assert.assertTrue(groupFromDb.getDataSources().size() == 1);
         Assert.assertTrue(groupFromDb.getUsers().contains(defaultUser));
@@ -68,17 +67,17 @@ public class UserScenariosTest extends RedashClientUserAndUserGroupTest {
     public void secondScenarioTest() throws IOException {
         int dataSourceId = redashClient.createDataSource(rds);
         for(int i = 0; i<5; i++){
-            UserGroup userGroup = new UserGroup("test group" + i);
-            redashClient.createUserGroup(userGroup);
+            Group group = new Group("test group" + i);
+            redashClient.createUserGroup(group);
         }
-        List<UserGroup> groups = redashClient.getUserGroups();
-        for (UserGroup ug : groups) {
+        List<Group> groups = redashClient.getUserGroups();
+        for (Group ug : groups) {
             if (ug.getId() != defaultGroup.getId()) {
                 Assert.assertTrue(redashClient.addDataSourceToGroup(dataSourceId, ug.getId()));
             }
         }
         groups = redashClient.getUserGroups();
-        for (UserGroup ug : groups) {
+        for (Group ug : groups) {
             if (ug.getId() != defaultGroup.getId()) {
                 Assert.assertTrue(simpleDatasourceMatcher(redashClient.getWithUsersAndDataSources(ug.getId()).getDataSources().get(0)));
             }

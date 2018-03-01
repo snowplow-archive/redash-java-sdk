@@ -18,16 +18,16 @@ import com.snowplowanalytics.redash.model.datasource.DataSource;
 import java.util.List;
 import java.util.Objects;
 
-public class UserGroup extends BaseEntity {
+public class Group extends BaseEntity {
 
     private List<User> users;
     private List<DataSource> dataSources;
 
-    public UserGroup(String name) {
+    public Group(String name) {
         super(name);
     }
 
-    public UserGroup(String name, int id) {
+    public Group(String name, int id) {
         super(name, id);
     }
 
@@ -52,11 +52,19 @@ public class UserGroup extends BaseEntity {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof UserGroup)) {
+        if (!(o instanceof Group)) {
             return false;
         }
-        UserGroup o1 = (UserGroup) o;
+        Group o1 = (Group) o;
         return getId() == o1.getId() &&
                 Objects.equals(getName(), o1.getName());
+    }
+
+    @Override
+    public String toString() {
+        return "Group{" +
+                "name='" + getName() + '\'' +
+                ", id=" + getId() +
+                '}';
     }
 }

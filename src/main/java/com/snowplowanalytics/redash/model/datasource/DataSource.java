@@ -49,4 +49,18 @@ public class DataSource extends BaseEntity{
     public String getType() {
         return type;
     }
+
+    public Options getOptions() {
+        return options;
+    }
+
+    @Override
+    public String toString() {
+        return "DataSource{" +
+                "type='" + type + '\'' +
+                ", options=" + options +
+                ", name='" + getName() + '\'' +
+                ", id=" + getId() +
+                "} ";
+    }
 }

@@ -36,4 +36,12 @@ public class User extends BaseEntity {
         return getId() == user.getId() &&
                 Objects.equals(getName(), user.getName());
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + getName() + '\'' +
+                ", id=" + getId() +
+                '}';
+    }
 }
