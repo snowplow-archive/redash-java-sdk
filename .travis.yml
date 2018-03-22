@@ -5,7 +5,11 @@ services:
   - docker
 
 env:
-  - DOCKER_COMPOSE_VERSION=1.20.0
+  matrix:
+    - DOCKER_COMPOSE_VERSION=1.20.0
+  global:
+    - secure: dAf7IBdUmw93M2w8CfbkMyH1VMGn46vIYCOhNI2vjWgK3yli8qOrcVnGGKegeXwr1oLO0e1ZPdVV2DgnktRdveFJag+IWfhcP4S3ChFrC7/cYzvcziRCVjVbBVcjgQxlRBRvY48FAD7u8erTteXeOnZcKLE6jGVP1JZjzgoLtVLT34yYYH6Mdfk6iQjJruYrT466zLwfv/0VCV033+17PjCWBP8PDKBx59ouluGLsWLq9NfaKW8gL10Pmg3Pzpri0BFl94o5J0y0/0hKiTI6Evyf4XB0PVI3tMbwIukzx7vQG7NY4qtDwCbQ9044TlwawhqOx8fTWOnuvO83wzmRYpwdOc3lGQZAmJM6nYfGrbXxwbwWAgegqHoZ/5XgY06QmOKnr5xtFMiEnw6g5fY7XXC7L9QOCGBIm3dsL/SZQ52nyGmW7qNGbuqz1fG7rs+JCbNO02fugNTmVJPbDorVe0AtzTxvBxTBQkmqmSa8TqBj6NVvL3+GJ8wBrumq9VxBlYvpmSjFhFhXWGTegdcAAX/BaiuykLww2SB8EvICJNCoSREy00R5NlYrAFtsurMaNrKiy5+ri2EBDRjNN1Uj4wfLmN6wpGJlPTlDXsXZheJsScKGl9ESzJS8V7slb6RpK0P2y1/ZDcyWDMGxYZ/ov2ENziJh19jbQYrqZ96te4I=
+    - secure: e+37F4FwSbbZh4b2zh9cMkD2gGAuJSsDrBm3IRtTeo8WDRfqyov/PnO7sphS4icxZG2T2w3Tfl5ghJW40ohMWHjmratz16PFZ1HSYR8ZEhmuFQuTeGroGH5z8skP5VZiVjix5b2ilm/7PP3n11thx4bXJNzaNeKcgS/dAjlko9XjlUXnuRav1SgBzZGavA3pVx4rJgR9SO9g4TVaWZ4uPtS2fXV2OFPANmgIKWOcB4hlP7RkBNpw5+NEeC0S5lEh7CxsxcdamVtSqSsQtNkwXUywsIL+WAUk+JJzDX7WI0yk7HPkjw8nzjF4O2Z9MqFf2v7DwH3tqKwbfSqxURoikoQzj+qEI/GlWw+J0jkSN+hBoMXcLd+QUKBJVX3xsYPfGj5hyrpSlkPeiJAz/0bbXagrWkmx8v122+5QBQ1NZmw3YHjWsC8nPpbd34v0i0jSc5nhgAEFHApLB5EEAb0BfdUhyUtCFtFw/2JO0S9FlI3CXBFH9udNrdpo7U0+WPh7MX6VWcMeO6sHgFBIvGaI0NBJXMxG7UVFMe8GWBzxDclCAAbHvdS+VcTMNZMH6Vjv7MdHVfoabPaD6kQ8wFr1AmghWNcye3KZXnqkkoVabzCJALG1ovkJC8Q6dwQ6uQKTFFzWZ513zxBgjdCGXtG+qG9Ulth0r7YqWZZuHQjoANE=
 
 before_install:
   - sudo apt-get update
@@ -17,3 +21,10 @@ before_install:
 
 script:
   - ./gradlew test
+
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: "./gradlew bintrayUpload"
+  on:
+    tags: true
