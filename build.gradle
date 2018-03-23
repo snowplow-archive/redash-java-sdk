@@ -23,7 +23,7 @@ apply plugin: 'com.jfrog.bintray'
 wrapper.gradleVersion = '2.14'
 
 group 'com.snowplowanalytics.redash'
-version '0.1.0'
+version '0.1.0-M2'
 
 sourceCompatibility = 1.8
 
